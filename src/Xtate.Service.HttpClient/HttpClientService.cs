@@ -12,12 +12,12 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
-using TSSArt.StateMachine.Annotations;
+using Xtate.Annotations;
 
-namespace TSSArt.StateMachine.Services
+namespace Xtate.Services
 {
 	[PublicAPI]
-	[SimpleService("http://tssart.com/scxml/service/#HTTPClient", Alias = "http")]
+	[SimpleService("http://xtate.net/scxml/service/#HTTPClient", Alias = "http")]
 	public class HttpClientService : SimpleServiceBase
 	{
 		private const string MediaTypeApplicationFormUrlEncoded = "application/x-www-form-urlencoded";
