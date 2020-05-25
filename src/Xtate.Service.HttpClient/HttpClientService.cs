@@ -117,7 +117,7 @@ namespace Xtate.Services
 								 Value = cookieObj["value"].AsStringOrDefault(),
 								 Path = cookieObj["path"].AsStringOrDefault(),
 								 Domain = cookieObj["domain"].AsStringOrDefault(),
-								 Expires = cookieObj["expires"].AsDateTimeOrDefault() ?? default,
+								 Expires = cookieObj["expires"].AsDateTimeOrDefault()?.ToDateTime() ?? default,
 								 HttpOnly = cookieObj["httpOnly"].AsBooleanOrDefault() ?? false,
 								 Secure = cookieObj["secure"].AsBooleanOrDefault() ?? false
 						 };
