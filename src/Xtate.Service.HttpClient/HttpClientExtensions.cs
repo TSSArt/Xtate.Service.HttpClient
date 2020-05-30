@@ -1,7 +1,7 @@
 ﻿using System;
 using Xtate.Services;
 
-namespace Xtate.EcmaScript
+namespace Xtate
 {
 	public static class HttpClientExtensions
 	{
