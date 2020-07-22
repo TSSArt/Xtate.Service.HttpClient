@@ -47,11 +47,11 @@ namespace Xtate.Services
 			var cookies = parameters["cookies"].AsArrayOrEmpty().Select(CreateCookie);
 
 			var capturesObj = parameters["capture"].AsObjectOrEmpty();
-			var captures = from name in capturesObj.Properties
-						   let capture = capturesObj[name].AsObjectOrEmpty()
+			var captures = from pair in capturesObj
+						   let capture = pair.Value.AsObjectOrEmpty()
 						   select new Capture
 								  {
-										  Name = name,
+										  Name = pair.Key,
 										  XPaths = GetArray(capture["xpath"]),
 										  Attributes = GetArray(capture["attr"]),
 										  Regex = capture["regex"].AsStringOrDefault()
@@ -74,37 +74,37 @@ namespace Xtate.Services
 			var responseHeaders = new DataModelArray();
 			foreach (var header in response.Headers)
 			{
-				responseHeaders.Add(new DataModelObject(capacity: 2)
+				responseHeaders.Add(new DataModelObject
 									{
-											["name"] = header.Key,
-											["value"] = header.Value
+											{ "name", header.Key },
+											{ "value", header.Value }
 									});
 			}
 
 			var responseCookies = new DataModelArray();
 			foreach (var cookie in response.Cookies)
 			{
-				responseCookies.Add(new DataModelObject(capacity: 8)
+				responseCookies.Add(new DataModelObject
 									{
-											["name"] = cookie.Name,
-											["value"] = cookie.Value,
-											["path"] = cookie.Path,
-											["domain"] = cookie.Domain,
-											["httpOnly"] = cookie.HttpOnly,
-											["port"] = cookie.Port,
-											["secure"] = cookie.Secure,
-											["expires"] = cookie.Expires != default ? cookie.Expires : default(DataModelValue)
+											{ "name", cookie.Name },
+											{ "value", cookie.Value },
+											{ "path", cookie.Path },
+											{ "domain", cookie.Domain },
+											{ "httpOnly", cookie.HttpOnly },
+											{ "port", cookie.Port },
+											{ "secure", cookie.Secure },
+											{ "expires", cookie.Expires != default ? cookie.Expires : default(DataModelValue) }
 									});
 			}
 
-			return new DataModelObject(capacity: 6)
+			return new DataModelObject
 				   {
-						   ["statusCode"] = response.StatusCode,
-						   ["statusDescription"] = response.StatusDescription,
-						   ["webExceptionStatus"] = response.WebExceptionStatus,
-						   ["headers"] = responseHeaders,
-						   ["cookies"] = responseCookies,
-						   ["content"] = response.Content
+						   { "statusCode", response.StatusCode },
+						   { "statusDescription", response.StatusDescription },
+						   { "webExceptionStatus", response.WebExceptionStatus },
+						   { "headers", responseHeaders },
+						   { "cookies", responseCookies },
+						   { "content", response.Content }
 				   };
 		}
 
@@ -308,7 +308,7 @@ namespace Xtate.Services
 
 		private static DataModelValue CaptureData(HtmlDocument htmlDocument, Capture[] captures)
 		{
-			var obj = new DataModelObject(captures.Length);
+			var obj = new DataModelObject();
 
 			foreach (var capture in captures)
 			{
@@ -316,7 +316,7 @@ namespace Xtate.Services
 
 				if (!result.IsUndefined())
 				{
-					obj[capture.Name] = result;
+					obj.Add(capture.Name, result);
 				}
 			}
 
@@ -362,7 +362,7 @@ namespace Xtate.Services
 				return CaptureInText(node.InnerHtml, pattern);
 			}
 
-			var obj = new DataModelObject(attrs.Length);
+			var obj = new DataModelObject();
 
 			foreach (var attr in attrs)
 			{
@@ -373,7 +373,7 @@ namespace Xtate.Services
 					return default;
 				}
 
-				obj[attr] = CaptureInText(value, pattern);
+				obj.Add(attr, CaptureInText(value, pattern));
 			}
 
 			return obj;
@@ -443,10 +443,10 @@ namespace Xtate.Services
 
 			var groupNames = regex.GetGroupNames();
 
-			var obj = new DataModelObject(groupNames.Length);
+			var obj = new DataModelObject();
 			foreach (var name in groupNames)
 			{
-				obj[name] = match.Groups[name].Value;
+				obj.Add(name, match.Groups[name].Value);
 			}
 
 			return obj;
