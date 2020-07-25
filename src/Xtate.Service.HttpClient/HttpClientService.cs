@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 using HtmlAgilityPack;
 using Xtate.Annotations;
 
-namespace Xtate.Services
+namespace Xtate.Service
 {
 	[PublicAPI]
 	[SimpleService("http://xtate.net/scxml/service/#HTTPClient", Alias = "http")]
