@@ -254,7 +254,7 @@ namespace Xtate.Service
 		{
 			var list = response.Headers.GetValues("Set-Cookie");
 
-			if (list == null)
+			if (list is null)
 			{
 				return;
 			}
@@ -291,7 +291,7 @@ namespace Xtate.Service
 
 		private static async ValueTask WriteContent(WebRequest request, string? contentType, DataModelValue content)
 		{
-			if (contentType == null)
+			if (contentType is null)
 			{
 				return;
 			}
@@ -344,7 +344,7 @@ namespace Xtate.Service
 
 		private static DataModelValue CaptureEntry(HtmlDocument htmlDocument, string[]? xpaths, string[]? attrs, string? pattern)
 		{
-			if (xpaths == null)
+			if (xpaths is null)
 			{
 				return CaptureInNode(htmlDocument.DocumentNode, attrs, pattern);
 			}
@@ -355,7 +355,7 @@ namespace Xtate.Service
 			{
 				var nodes = htmlDocument.DocumentNode.SelectNodes(xpath);
 
-				if (nodes == null)
+				if (nodes is null)
 				{
 					continue;
 				}
@@ -376,7 +376,7 @@ namespace Xtate.Service
 
 		private static DataModelValue CaptureInNode(HtmlNode node, string[]? attrs, string? pattern)
 		{
-			if (attrs == null)
+			if (attrs is null)
 			{
 				return CaptureInText(node.InnerHtml, pattern);
 			}
@@ -387,7 +387,7 @@ namespace Xtate.Service
 			{
 				var value = attr.StartsWith(value: "::", StringComparison.Ordinal) ? GetSpecialAttributeValue(node, attr) : node.GetAttributeValue(attr, def: null);
 
-				if (value == null)
+				if (value is null)
 				{
 					return default;
 				}
@@ -442,7 +442,7 @@ namespace Xtate.Service
 
 		private static DataModelValue CaptureInText(string text, string? pattern)
 		{
-			if (pattern == null)
+			if (pattern is null)
 			{
 				return text;
 			}
