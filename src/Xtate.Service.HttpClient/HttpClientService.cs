@@ -60,7 +60,7 @@ namespace Xtate.Service
 			var headers = from obj in parameters["headers"].AsArrayOrEmpty()
 						  let name = obj.AsObjectOrEmpty()["name"].AsStringOrDefault()
 						  let value = obj.AsObjectOrEmpty()["value"].AsStringOrDefault()
-						  where !string.IsNullOrEmpty(name) && value != null
+						  where !string.IsNullOrEmpty(name) && value is { }
 						  select new KeyValuePair<string, string>(name, value);
 
 			var cookies = parameters["cookies"].AsArrayOrEmpty().Select(CreateCookie);
@@ -156,7 +156,7 @@ namespace Xtate.Service
 			var forms = from p in content.AsArrayOrEmpty()
 						let name = p.AsObjectOrEmpty()["name"].AsStringOrDefault()
 						let value = p.AsObjectOrEmpty()["value"].AsStringOrDefault()
-						where !string.IsNullOrEmpty(name) && value != null
+						where !string.IsNullOrEmpty(name) && value is { }
 						select new KeyValuePair<string, string>(name, value);
 
 			return new FormUrlEncodedContent(forms);
@@ -185,7 +185,7 @@ namespace Xtate.Service
 			request.Method = method;
 			request.AllowAutoRedirect = autoRedirect;
 
-			if (accept != null)
+			if (accept is { })
 			{
 				request.Accept = accept;
 			}
@@ -419,7 +419,7 @@ namespace Xtate.Service
 			var selected = node.ChildNodes.FirstOrDefault(n => n.Name == "option" && n.Attributes.Contains("selected"))
 						   ?? node.ChildNodes.FirstOrDefault(n => n.Name == "option");
 
-			return selected != null ? GetValue(selected, check: false) : null;
+			return selected is { } ? GetValue(selected, check: false) : null;
 		}
 
 		private static string? GetInputValue(HtmlNode node) =>
