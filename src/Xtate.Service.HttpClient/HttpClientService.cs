@@ -180,6 +180,8 @@ namespace Xtate.Service
 														   IEnumerable<KeyValuePair<string, string>> headers, IEnumerable<Cookie> cookies,
 														   Capture[] captures, DataModelValue content, CancellationToken token)
 		{
+			Infrastructure.NotNull(requestUri);
+
 			var request = WebRequest.CreateHttp(requestUri);
 
 			request.Method = method;
@@ -224,6 +226,7 @@ namespace Xtate.Service
 			result.StatusDescription = response.StatusDescription;
 
 			var stream = response.GetResponseStream();
+			Infrastructure.NotNull(stream);
 			await using (stream.ConfigureAwait(false))
 			{
 				var responseContentType = new ContentType(response.ContentType);
@@ -259,6 +262,7 @@ namespace Xtate.Service
 				return;
 			}
 
+			Infrastructure.NotNull(uri);
 			var uriBuilder = new UriBuilder(uri);
 
 			foreach (var header in list)
