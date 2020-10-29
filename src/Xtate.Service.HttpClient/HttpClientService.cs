@@ -46,28 +46,28 @@ namespace Xtate.Service
 		public static readonly IServiceFactory Factory = SimpleServiceFactory<HttpClientService>.Instance;
 
 		private static readonly FieldInfo DomainTableField = typeof(CookieContainer).GetField(name: "m_domainTable", BindingFlags.Instance | BindingFlags.NonPublic)!;
-		private static readonly FieldInfo ListField        = typeof(CookieContainer).Assembly.GetType("System.Net.PathList").GetField(name: "m_list", BindingFlags.Instance | BindingFlags.NonPublic)!;
+		private static readonly FieldInfo ListField        = typeof(CookieContainer).Assembly.GetType("System.Net.PathList")!.GetField(name: "m_list", BindingFlags.Instance | BindingFlags.NonPublic)!;
 
 		protected override async ValueTask<DataModelValue> Execute()
 		{
-			var parameters = Parameters.AsObjectOrEmpty();
+			var parameters = Parameters.AsListOrEmpty();
 
 			var method = parameters["method"].AsStringOrDefault() ?? "get";
 			var autoRedirect = parameters["autoRedirect"].AsBooleanOrDefault() ?? true;
 			var accept = parameters["accept"].AsStringOrDefault();
 			var contentType = parameters["contentType"].AsStringOrDefault();
 
-			var headers = from obj in parameters["headers"].AsArrayOrEmpty()
-						  let name = obj.AsObjectOrEmpty()["name"].AsStringOrDefault()
-						  let value = obj.AsObjectOrEmpty()["value"].AsStringOrDefault()
-						  where !string.IsNullOrEmpty(name) && value is { }
+			var headers = from list in parameters["headers"].AsListOrEmpty()
+						  let name = list.AsListOrEmpty()["name"].AsStringOrDefault()
+						  let value = list.AsListOrEmpty()["value"].AsStringOrDefault()
+						  where !string.IsNullOrEmpty(name) && value is not null
 						  select new KeyValuePair<string, string>(name, value);
 
-			var cookies = parameters["cookies"].AsArrayOrEmpty().Select(CreateCookie);
+			var cookies = parameters["cookies"].AsListOrEmpty().Select(CreateCookie);
 
-			var capturesObj = parameters["capture"].AsObjectOrEmpty();
-			var captures = from pair in capturesObj
-						   let capture = pair.Value.AsObjectOrEmpty()
+			var capturesList = parameters["capture"].AsListOrEmpty();
+			var captures = from pair in capturesList.KeyValuePairs
+						   let capture = pair.Value.AsListOrEmpty()
 						   select new Capture
 								  {
 										  Name = pair.Key,
@@ -78,9 +78,9 @@ namespace Xtate.Service
 
 			static string[]? GetArray(DataModelValue val)
 			{
-				if (val.Type == DataModelValueType.Array)
+				if (val.Type == DataModelValueType.List)
 				{
-					return val.AsArray().Select(p => p.AsString()).Where(s => !string.IsNullOrEmpty(s)).ToArray();
+					return val.AsList().Select(p => p.AsString()).Where(s => !string.IsNullOrEmpty(s)).ToArray();
 				}
 
 				var str = val.AsStringOrDefault();
@@ -90,20 +90,22 @@ namespace Xtate.Service
 
 			var response = await DoRequest(Source, method, accept, autoRedirect, contentType, headers, cookies, captures.ToArray(), Content, StopToken).ConfigureAwait(false);
 
-			var responseHeaders = new DataModelArray();
+			var responseHeaders = new DataModelList();
 			foreach (var header in response.Headers)
 			{
-				responseHeaders.Add(new DataModelObject
+				responseHeaders.Add(new DataModelList
 									{
 											{ "name", header.Key },
 											{ "value", header.Value }
 									});
 			}
 
-			var responseCookies = new DataModelArray();
+			var responseCookies = new DataModelList();
 			foreach (var cookie in response.Cookies)
 			{
-				responseCookies.Add(new DataModelObject
+				Infrastructure.NotNull(cookie);
+
+				responseCookies.Add(new DataModelList
 									{
 											{ "name", cookie.Name },
 											{ "value", cookie.Value },
@@ -116,7 +118,7 @@ namespace Xtate.Service
 									});
 			}
 
-			return new DataModelObject
+			return new DataModelList
 				   {
 						   { "statusCode", response.StatusCode },
 						   { "statusDescription", response.StatusDescription },
@@ -129,19 +131,19 @@ namespace Xtate.Service
 
 		private static Cookie CreateCookie(DataModelValue val)
 		{
-			var cookieObj = val.AsObjectOrEmpty();
+			var cookieList = val.AsListOrEmpty();
 			var cookie = new Cookie
 						 {
-								 Name = cookieObj["name"].AsStringOrDefault(),
-								 Value = cookieObj["value"].AsStringOrDefault(),
-								 Path = cookieObj["path"].AsStringOrDefault(),
-								 Domain = cookieObj["domain"].AsStringOrDefault(),
-								 Expires = cookieObj["expires"].AsDateTimeOrDefault()?.ToDateTime() ?? default,
-								 HttpOnly = cookieObj["httpOnly"].AsBooleanOrDefault() ?? false,
-								 Secure = cookieObj["secure"].AsBooleanOrDefault() ?? false
+								 Name = cookieList["name"].AsStringOrDefault(),
+								 Value = cookieList["value"].AsStringOrDefault(),
+								 Path = cookieList["path"].AsStringOrDefault(),
+								 Domain = cookieList["domain"].AsStringOrDefault(),
+								 Expires = cookieList["expires"].AsDateTimeOrDefault()?.ToDateTime() ?? default,
+								 HttpOnly = cookieList["httpOnly"].AsBooleanOrDefault() ?? false,
+								 Secure = cookieList["secure"].AsBooleanOrDefault() ?? false
 						 };
 
-			var port = cookieObj["port"].AsStringOrDefault();
+			var port = cookieList["port"].AsStringOrDefault();
 
 			if (!string.IsNullOrEmpty(port))
 			{
@@ -153,11 +155,11 @@ namespace Xtate.Service
 
 		private static HttpContent CreateFormUrlEncodedContent(DataModelValue content)
 		{
-			var forms = from p in content.AsArrayOrEmpty()
-						let name = p.AsObjectOrEmpty()["name"].AsStringOrDefault()
-						let value = p.AsObjectOrEmpty()["value"].AsStringOrDefault()
-						where !string.IsNullOrEmpty(name) && value is { }
-						select new KeyValuePair<string, string>(name, value);
+			var forms = from p in content.AsListOrEmpty()
+						let name = p.AsListOrEmpty()["name"].AsStringOrDefault()
+						let value = p.AsListOrEmpty()["value"].AsStringOrDefault()
+						where !string.IsNullOrEmpty(name) && value is not null
+						select new KeyValuePair<string?, string?>(name, value);
 
 			return new FormUrlEncodedContent(forms);
 		}
@@ -187,7 +189,7 @@ namespace Xtate.Service
 			request.Method = method;
 			request.AllowAutoRedirect = autoRedirect;
 
-			if (accept is { })
+			if (accept is not null)
 			{
 				request.Accept = accept;
 			}
@@ -217,6 +219,11 @@ namespace Xtate.Service
 			}
 			catch (WebException ex)
 			{
+				if (ex.Response is null)
+				{
+					return new Response();
+				}
+
 				response = (HttpWebResponse) ex.Response;
 
 				result.WebExceptionStatus = ex.Status.ToString();
@@ -241,12 +248,12 @@ namespace Xtate.Service
 				}
 			}
 
-			result.Headers = from key in response.Headers.AllKeys select new KeyValuePair<string, string>(key, response.Headers[key]);
+			result.Headers = from key in response.Headers.AllKeys select new KeyValuePair<string, string?>(key, response.Headers[key]);
 
 			AppendCookies(requestUri, cookieContainer, response);
 
-			result.Cookies = from object pathList in ((Hashtable) DomainTableField.GetValue(cookieContainer)).Values
-							 from IEnumerable cookieList in ((SortedList) ListField.GetValue(pathList)).Values
+			result.Cookies = from object pathList in ((Hashtable) DomainTableField.GetValue(cookieContainer)!).Values
+							 from IEnumerable cookieList in ((SortedList) ListField.GetValue(pathList)!).Values
 							 from Cookie cookie in cookieList
 							 select cookie;
 
@@ -331,7 +338,7 @@ namespace Xtate.Service
 
 		private static DataModelValue CaptureData(HtmlDocument htmlDocument, Capture[] captures)
 		{
-			var obj = new DataModelObject();
+			var list = new DataModelList();
 
 			foreach (var capture in captures)
 			{
@@ -339,11 +346,11 @@ namespace Xtate.Service
 
 				if (!result.IsUndefined())
 				{
-					obj.Add(capture.Name, result);
+					list.Add(capture.Name, result);
 				}
 			}
 
-			return obj;
+			return list;
 		}
 
 		private static DataModelValue CaptureEntry(HtmlDocument htmlDocument, string[]? xpaths, string[]? attrs, string? pattern)
@@ -353,7 +360,7 @@ namespace Xtate.Service
 				return CaptureInNode(htmlDocument.DocumentNode, attrs, pattern);
 			}
 
-			var array = new DataModelArray();
+			var array = new DataModelList();
 
 			foreach (var xpath in xpaths)
 			{
@@ -385,7 +392,7 @@ namespace Xtate.Service
 				return CaptureInText(node.InnerHtml, pattern);
 			}
 
-			var obj = new DataModelObject();
+			var list = new DataModelList();
 
 			foreach (var attr in attrs)
 			{
@@ -396,10 +403,10 @@ namespace Xtate.Service
 					return default;
 				}
 
-				obj.Add(attr, CaptureInText(value, pattern));
+				list.Add(attr, CaptureInText(value, pattern));
 			}
 
-			return obj;
+			return list;
 		}
 
 		private static string? GetSpecialAttributeValue(HtmlNode node, string attr) =>
@@ -423,7 +430,7 @@ namespace Xtate.Service
 			var selected = node.ChildNodes.FirstOrDefault(n => n.Name == "option" && n.Attributes.Contains("selected"))
 						   ?? node.ChildNodes.FirstOrDefault(n => n.Name == "option");
 
-			return selected is { } ? GetValue(selected, check: false) : null;
+			return selected is not null ? GetValue(selected, check: false) : null;
 		}
 
 		private static string? GetInputValue(HtmlNode node) =>
@@ -466,23 +473,23 @@ namespace Xtate.Service
 
 			var groupNames = regex.GetGroupNames();
 
-			var obj = new DataModelObject();
+			var list = new DataModelList();
 			foreach (var name in groupNames)
 			{
-				obj.Add(name, match.Groups[name].Value);
+				list.Add(name, match.Groups[name].Value);
 			}
 
-			return obj;
+			return list;
 		}
 
 		private struct Response
 		{
-			public int                                       StatusCode         { get; set; }
-			public string                                    StatusDescription  { get; set; }
-			public string                                    WebExceptionStatus { get; set; }
-			public DataModelValue                            Content            { get; set; }
-			public IEnumerable<KeyValuePair<string, string>> Headers            { get; set; }
-			public IEnumerable<Cookie>                       Cookies            { get; set; }
+			public int                                        StatusCode         { get; set; }
+			public string                                     StatusDescription  { get; set; }
+			public string                                     WebExceptionStatus { get; set; }
+			public DataModelValue                             Content            { get; set; }
+			public IEnumerable<KeyValuePair<string, string?>> Headers            { get; set; }
+			public IEnumerable<Cookie?>                       Cookies            { get; set; }
 		}
 
 		private struct Capture
