@@ -293,7 +293,7 @@ namespace Xtate.Service
 
 					var p2 = header.IndexOf(value: ';', p1);
 
-					var path = p2 < 0 ? header.Substring(p1) : header.Substring(p1, p2 - p1);
+					var path = p2 < 0 ? header[p1..] : header[p1..p2];
 
 					yield return path.Trim().Trim('\"');
 				}
