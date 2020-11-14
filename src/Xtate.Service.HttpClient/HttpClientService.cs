@@ -170,12 +170,20 @@ namespace Xtate.Service
 
 		private static ValueTask<DataModelValue> FromJsonContent(Stream stream, CancellationToken token) => DataModelConverter.FromJsonAsync(stream, token);
 
-		private static ValueTask<DataModelValue> FromHtmlContent(Stream stream, Capture[] captures)
+		private static async ValueTask<DataModelValue> FromHtmlContent(Stream stream, string? contentEncoding, Capture[] captures, CancellationToken token)
 		{
-			var htmlDocument = new HtmlDocument();
-			htmlDocument.Load(stream);
+			var encoding = contentEncoding is not null ? Encoding.GetEncoding(contentEncoding) : Encoding.UTF8;
 
-			return new ValueTask<DataModelValue>(CaptureData(htmlDocument, captures));
+			var htmlDocument = new HtmlDocument();
+
+			string html;
+			using (var streamReader = new StreamReader(stream.InjectCancellationToken(token), encoding))
+			{
+				html = await streamReader.ReadToEndAsync().ConfigureAwait(false);
+			}
+			htmlDocument.Load(html);
+
+			return CaptureData(htmlDocument, captures);
 		}
 
 		private static async ValueTask<Response> DoRequest(Uri? requestUri, string method, string? accept, bool autoRedirect, string? contentType,
@@ -208,14 +216,14 @@ namespace Xtate.Service
 
 			request.CookieContainer = cookieContainer;
 
-			await WriteContent(request, contentType, content).ConfigureAwait(false);
+			await WriteContent(request, contentType, content, token).ConfigureAwait(false);
 
 			var result = new Response();
 
 			HttpWebResponse response;
 			try
 			{
-				response = (HttpWebResponse) await request.GetResponseAsync().ConfigureAwait(false);
+				response = await GetResponse(request, token).ConfigureAwait(false);
 			}
 			catch (WebException ex)
 			{
@@ -244,7 +252,7 @@ namespace Xtate.Service
 				}
 				else if (responseContentType.MediaType == MediaTypeTextHtml)
 				{
-					result.Content = await FromHtmlContent(stream, captures).ConfigureAwait(false);
+					result.Content = await FromHtmlContent(stream, response.ContentEncoding, captures, token).ConfigureAwait(false);
 				}
 			}
 
@@ -258,6 +266,29 @@ namespace Xtate.Service
 							 select cookie;
 
 			return result;
+		}
+
+		private static async Task<HttpWebResponse> GetResponse(HttpWebRequest request, CancellationToken token)
+		{
+#if NET461 || NETSTANDARD2_0
+			using var registration = token.Register(request.Abort, useSynchronizationContext: false);
+#else
+			await using var registration = token.Register(request.Abort, useSynchronizationContext: false);
+#endif
+
+			try
+			{
+				return (HttpWebResponse) await request.GetResponseAsync().ConfigureAwait(false);
+			}
+			catch (WebException ex)
+			{
+				if (token.IsCancellationRequested)
+				{
+					throw new OperationCanceledException(ex.Message, ex, token);
+				}
+
+				throw;
+			}
 		}
 
 		private static void AppendCookies(Uri? uri, CookieContainer cookieContainer, HttpWebResponse response)
@@ -300,7 +331,7 @@ namespace Xtate.Service
 			}
 		}
 
-		private static async ValueTask WriteContent(WebRequest request, string? contentType, DataModelValue content)
+		private static async ValueTask WriteContent(WebRequest request, string? contentType, DataModelValue content, CancellationToken token)
 		{
 			if (contentType is null)
 			{
@@ -317,24 +348,30 @@ namespace Xtate.Service
 					case MediaTypeApplicationFormUrlEncoded:
 					{
 						using var httpContent = CreateFormUrlEncodedContent(content);
-						await httpContent.CopyToAsync(stream).ConfigureAwait(false);
+						await CopyContentToStreamAsync(httpContent, stream, token).ConfigureAwait(false);
 						break;
 					}
 					case MediaTypeApplicationJson:
 					{
 						using var httpContent = CreateJsonContent(content);
-						await httpContent.CopyToAsync(stream).ConfigureAwait(false);
+						await CopyContentToStreamAsync(httpContent, stream, token).ConfigureAwait(false);
 						break;
 					}
 					default:
 					{
 						using var httpContent = CreateDefaultContent(content);
-						await httpContent.CopyToAsync(stream).ConfigureAwait(false);
+						await CopyContentToStreamAsync(httpContent, stream, token).ConfigureAwait(false);
 						break;
 					}
 				}
 			}
 		}
+
+#if NET461 || NETSTANDARD2_0
+		private static Task CopyContentToStreamAsync(HttpContent httpContent, Stream stream, CancellationToken token) => httpContent.CopyToAsync(stream.InjectCancellationToken(token));
+#else
+		private static Task CopyContentToStreamAsync(HttpContent httpContent, Stream stream, CancellationToken token) => httpContent.CopyToAsync(stream, token);
+#endif
 
 		private static DataModelValue CaptureData(HtmlDocument htmlDocument, Capture[] captures)
 		{
