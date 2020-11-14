@@ -43,7 +43,7 @@ namespace Xtate.Service
 		private const string MediaTypeApplicationJson           = "application/json";
 		private const string MediaTypeTextHtml                  = "text/html";
 
-		public static readonly IServiceFactory Factory = SimpleServiceFactory<HttpClientService>.Instance;
+		public static IServiceFactory Factory => SimpleServiceFactory<HttpClientService>.Instance;
 
 		private static readonly FieldInfo DomainTableField = typeof(CookieContainer).GetField(name: "m_domainTable", BindingFlags.Instance | BindingFlags.NonPublic)!;
 		private static readonly FieldInfo ListField        = typeof(CookieContainer).Assembly.GetType("System.Net.PathList")!.GetField(name: "m_list", BindingFlags.Instance | BindingFlags.NonPublic)!;
