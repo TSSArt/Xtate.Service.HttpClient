@@ -18,19 +18,19 @@
 #endregion
 
 using System;
-using Xtate.Service;
 
-namespace Xtate
+namespace Xtate.Service
 {
-	public static class HttpClientExtensions
+	public class HttpClientServiceFactory : ServiceFactoryBase
 	{
-		public static StateMachineHostBuilder AddHttpClient(this StateMachineHostBuilder builder)
+		public static IServiceFactory Instance { get; } = new HttpClientServiceFactory();
+
+		protected override void Register(IServiceCatalog catalog)
 		{
-			if (builder is null) throw new ArgumentNullException(nameof(builder));
+			if (catalog is null) throw new ArgumentNullException(nameof(catalog));
 
-			builder.AddServiceFactory(HttpClientServiceFactory.Instance);
-
-			return builder;
+			catalog.Register(type: "http://xtate.net/scxml/service/#HTTPClient", () => new HttpClientService());
+			catalog.Register(type: "http", () => new HttpClientService());
 		}
 	}
 }

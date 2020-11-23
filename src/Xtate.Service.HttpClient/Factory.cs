@@ -26,7 +26,7 @@ namespace Xtate.Service
 	{
 		public Factory()
 		{
-			Add(HttpClientService.Factory);
+			Add(HttpClientServiceFactory.Instance);
 		}
 	}
 }
