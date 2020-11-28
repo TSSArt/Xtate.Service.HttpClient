@@ -47,7 +47,7 @@ namespace Xtate.Service
 		{
 			var parameters = Parameters.AsListOrEmpty();
 
-			var method = parameters["method"].AsStringOrDefault() ?? "get";
+			var method = parameters["method"].AsStringOrDefault() ?? @"get";
 			var autoRedirect = parameters["autoRedirect"].AsBooleanOrDefault() ?? true;
 			var accept = parameters["accept"].AsStringOrDefault();
 			var contentType = parameters["contentType"].AsStringOrDefault();
@@ -429,7 +429,7 @@ namespace Xtate.Service
 
 			foreach (var attr in attrs)
 			{
-				var value = attr.StartsWith(value: "::", StringComparison.Ordinal) ? GetSpecialAttributeValue(node, attr) : node.GetAttributeValue(attr, def: null);
+				var value = attr.StartsWith(value: @"::", StringComparison.Ordinal) ? GetSpecialAttributeValue(node, attr) : node.GetAttributeValue(attr, def: null);
 
 				if (value is null)
 				{
@@ -460,14 +460,14 @@ namespace Xtate.Service
 
 		private static string? GetSelectValue(HtmlNode node)
 		{
-			var selected = node.ChildNodes.FirstOrDefault(n => n.Name == "option" && n.Attributes.Contains("selected"))
-						   ?? node.ChildNodes.FirstOrDefault(n => n.Name == "option");
+			var selected = node.ChildNodes.FirstOrDefault(n => n.Name == @"option" && n.Attributes.Contains(@"selected"))
+						   ?? node.ChildNodes.FirstOrDefault(n => n.Name == @"option");
 
 			return selected is not null ? GetValue(selected, check: false) : null;
 		}
 
 		private static string? GetInputValue(HtmlNode node) =>
-				node.GetAttributeValue(name: "type", def: null) switch
+				node.GetAttributeValue(name: @"type", def: null) switch
 				{
 						"radio" => GetValue(node, check: true),
 						"checkbox" => GetValue(node, check: true),
@@ -476,12 +476,12 @@ namespace Xtate.Service
 
 		private static string? GetValue(HtmlNode node, bool check)
 		{
-			if (check && !node.Attributes.Contains("checked"))
+			if (check && !node.Attributes.Contains(@"checked"))
 			{
 				return null;
 			}
 
-			return node.GetAttributeValue(name: "value", def: null) ?? node.InnerText;
+			return node.GetAttributeValue(name: @"value", def: null) ?? node.InnerText;
 		}
 
 		private static DataModelValue CaptureInText(string text, string? pattern)

@@ -29,8 +29,8 @@ namespace Xtate.Service
 		{
 			if (catalog is null) throw new ArgumentNullException(nameof(catalog));
 
-			catalog.Register(type: "http://xtate.net/scxml/service/#HTTPClient", () => new HttpClientService());
-			catalog.Register(type: "http", () => new HttpClientService());
+			catalog.Register(type: @"http://xtate.net/scxml/service/#HTTPClient", () => new HttpClientService());
+			catalog.Register(type: @"http", () => new HttpClientService());
 		}
 	}
 }
