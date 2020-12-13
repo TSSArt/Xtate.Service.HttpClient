@@ -177,7 +177,7 @@ namespace Xtate.Service
 				html = await streamReader.ReadToEndAsync().ConfigureAwait(false);
 			}
 
-			htmlDocument.Load(html);
+			htmlDocument.LoadHtml(html);
 
 			return CaptureData(htmlDocument, captures);
 		}
