@@ -266,24 +266,22 @@ namespace Xtate.Service
 
 		private static async Task<HttpWebResponse> GetResponse(HttpWebRequest request, CancellationToken token)
 		{
-#if NET461 || NETSTANDARD2_0
-			using var registration = token.Register(request.Abort, useSynchronizationContext: false);
-#else
-			await using var registration = token.Register(request.Abort, useSynchronizationContext: false);
-#endif
-
-			try
+			var registration = token.Register(request.Abort, useSynchronizationContext: false);
+			await using (registration.ConfigureAwait(false))
 			{
-				return (HttpWebResponse) await request.GetResponseAsync().ConfigureAwait(false);
-			}
-			catch (WebException ex)
-			{
-				if (token.IsCancellationRequested)
+				try
 				{
-					throw new OperationCanceledException(ex.Message, ex, token);
+					return (HttpWebResponse) await request.GetResponseAsync().ConfigureAwait(false);
 				}
+				catch (WebException ex)
+				{
+					if (token.IsCancellationRequested)
+					{
+						throw new OperationCanceledException(ex.Message, ex, token);
+					}
 
-				throw;
+					throw;
+				}
 			}
 		}
 
