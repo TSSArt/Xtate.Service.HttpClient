@@ -20,12 +20,10 @@
 
   <ItemGroup Condition="'$(UseProjectReference)'=='true'">
     <ProjectReference Include="$(XtateCoreRepoPath)src\Xtate.Core\Xtate.Core.csproj" />
-    <ProjectReference Include="$(XtateSerializationRepoPath)src\Xtate.Serialization\Xtate.Serialization.csproj" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(UseProjectReference)'==''">
     <PackageReference Include="Xtate.Core" Version="0.*" />
-    <PackageReference Include="Xtate.Serialization" Version="0.*" />
   </ItemGroup>
 
   <ItemGroup>
