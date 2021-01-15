@@ -20,11 +20,11 @@
 #if NET461 || NETSTANDARD2_0
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
-using Xtate.Annotations;
+using Xtate;
 
 namespace System
 {
-	[PublicAPI]
+	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 	internal readonly struct Index : IEquatable<Index>
 	{
 		private readonly int _value;
@@ -82,7 +82,7 @@ namespace System
 		public override string ToString() => IsFromEnd ? @"^" + (uint) Value : ((uint) Value).ToString();
 	}
 
-	[PublicAPI]
+	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 	internal readonly struct Range : IEquatable<Range>
 	{
 		public Range(Index start, Index end)
