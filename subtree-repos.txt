@@ -1,8 +1,0 @@
-Xtate.SharedContent
-Xtate.IoC
-Xtate.Core
-Xtate.DataModel.EcmaScript
-Xtate.Logger.Serilog
-Xtate.IoProcessor.Http
-Xtate.IoProcessor.Http.Kestrel
-Xtate.Web.Tools
