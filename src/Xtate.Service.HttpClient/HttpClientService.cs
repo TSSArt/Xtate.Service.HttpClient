@@ -99,7 +99,7 @@ namespace Xtate.Service
 			var responseCookies = new DataModelList();
 			foreach (var cookie in response.Cookies)
 			{
-				Infrastructure.NotNull(cookie);
+				Infra.NotNull(cookie);
 
 				responseCookies.Add(new DataModelList
 									{
@@ -187,7 +187,7 @@ namespace Xtate.Service
 														   IEnumerable<KeyValuePair<string, string>> headers, IEnumerable<Cookie> cookies,
 														   Capture[] captures, DataModelValue content, CancellationToken token)
 		{
-			Infrastructure.NotNull(requestUri);
+			Infra.NotNull(requestUri);
 
 			var request = WebRequest.CreateHttp(requestUri);
 
@@ -238,7 +238,7 @@ namespace Xtate.Service
 			result.StatusDescription = response.StatusDescription;
 
 			var stream = response.GetResponseStream();
-			Infrastructure.NotNull(stream);
+			Infra.NotNull(stream);
 			await using (stream.ConfigureAwait(false))
 			{
 				var responseContentType = new ContentType(response.ContentType);
@@ -295,7 +295,7 @@ namespace Xtate.Service
 				return;
 			}
 
-			Infrastructure.NotNull(uri);
+			Infra.NotNull(uri);
 			var uriBuilder = new UriBuilder(uri);
 
 			foreach (var header in list)
