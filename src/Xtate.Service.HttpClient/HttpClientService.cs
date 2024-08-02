@@ -79,7 +79,7 @@ public class HttpClientService : ServiceBase
 
 			var str = val.AsStringOrDefault();
 
-			return !string.IsNullOrEmpty(str) ? new[] { str } : null;
+			return !string.IsNullOrEmpty(str) ? [str] : null;
 		}
 
 		var response = await DoRequest(Source, method, accept, autoRedirect, contentType, headers, cookies, captures.ToArray(), Content, StopToken).ConfigureAwait(false);
@@ -149,7 +149,7 @@ public class HttpClientService : ServiceBase
 		return cookie;
 	}
 
-	private static HttpContent CreateFormUrlEncodedContent(DataModelValue content)
+	private static FormUrlEncodedContent CreateFormUrlEncodedContent(DataModelValue content)
 	{
 		var forms = from p in content.AsListOrEmpty()
 					let name = p.AsListOrEmpty()["name"].AsStringOrDefault()
@@ -160,9 +160,9 @@ public class HttpClientService : ServiceBase
 		return new FormUrlEncodedContent(forms);
 	}
 
-	private static HttpContent CreateJsonContent(DataModelValue content) => new ByteArrayContent(DataModelConverter.ToJsonUtf8Bytes(content));
+	private static ByteArrayContent CreateJsonContent(DataModelValue content) => new(DataModelConverter.ToJsonUtf8Bytes(content));
 
-	private static HttpContent CreateDefaultContent(DataModelValue content) => new StringContent(content.ToObject()?.ToString() ?? string.Empty, Encoding.UTF8);
+	private static StringContent CreateDefaultContent(DataModelValue content) => new(content.ToObject()?.ToString() ?? string.Empty, Encoding.UTF8);
 
 	private static ValueTask<DataModelValue> FromJsonContent(Stream stream, CancellationToken token) => DataModelConverter.FromJsonAsync(stream, token);
 
@@ -178,7 +178,11 @@ public class HttpClientService : ServiceBase
 		string html;
 		using (var streamReader = new StreamReader(stream.InjectCancellationToken(token), encoding))
 		{
+#if NET7_0_OR_GREATER
+			html = await streamReader.ReadToEndAsync(token).ConfigureAwait(false);
+#else
 			html = await streamReader.ReadToEndAsync().ConfigureAwait(false);
+#endif
 		}
 
 		htmlDocument.LoadHtml(html);
