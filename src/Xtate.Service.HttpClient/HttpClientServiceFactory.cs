@@ -1,5 +1,5 @@
-﻿#region Copyright © 2019-2021 Sergii Artemenko
-
+﻿// Copyright © 2019-2024 Sergii Artemenko
+// 
 // This file is part of the Xtate project. <https://xtate.net/>
 // 
 // This program is free software: you can redistribute it and/or modify
@@ -15,22 +15,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#endregion
-
 using System;
 
-namespace Xtate.Service
+namespace Xtate.Service;
+
+public class HttpClientServiceFactory : ServiceFactoryBase
 {
-	public class HttpClientServiceFactory : ServiceFactoryBase
+	public static IServiceFactory Instance { get; } = new HttpClientServiceFactory();
+
+	protected override void Register(IServiceCatalog catalog)
 	{
-		public static IServiceFactory Instance { get; } = new HttpClientServiceFactory();
+		if (catalog is null) throw new ArgumentNullException(nameof(catalog));
 
-		protected override void Register(IServiceCatalog catalog)
-		{
-			if (catalog is null) throw new ArgumentNullException(nameof(catalog));
-
-			catalog.Register(type: @"http://xtate.net/scxml/service/#HTTPClient", () => new HttpClientService());
-			catalog.Register(type: @"http", () => new HttpClientService());
-		}
+		catalog.Register(type: @"http://xtate.net/scxml/service/#HTTPClient", () => new HttpClientService());
+		catalog.Register(type: @"http", () => new HttpClientService());
 	}
 }
