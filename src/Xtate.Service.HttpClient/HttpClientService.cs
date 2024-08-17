@@ -18,6 +18,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -30,6 +31,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
 using Xtate.Core;
+using Exception = System.Exception;
 
 namespace Xtate.Service;
 
@@ -98,7 +100,7 @@ public class HttpClientService : ServiceBase
 		var responseCookies = new DataModelList();
 		foreach (var cookie in response.Cookies)
 		{
-			Infra.NotNull(cookie);
+			Debug.Assert(cookie is not null);
 
 			responseCookies.Add(
 				new DataModelList
@@ -130,7 +132,7 @@ public class HttpClientService : ServiceBase
 		var cookieList = val.AsListOrEmpty();
 		var cookie = new Cookie
 					 {
-						 Name = cookieList["name"].AsStringOrDefault(),
+						 Name = cookieList["name"].AsString(),
 						 Value = cookieList["value"].AsStringOrDefault(),
 						 Path = cookieList["path"].AsStringOrDefault(),
 						 Domain = cookieList["domain"].AsStringOrDefault(),
@@ -190,7 +192,7 @@ public class HttpClientService : ServiceBase
 		return CaptureData(htmlDocument, captures);
 	}
 
-	private static async ValueTask<Response> DoRequest(Uri? requestUri,
+	private static async ValueTask<Response> DoRequest(Uri requestUri,
 													   string method,
 													   string? accept,
 													   bool autoRedirect,
@@ -201,8 +203,6 @@ public class HttpClientService : ServiceBase
 													   DataModelValue content,
 													   CancellationToken token)
 	{
-		Infra.NotNull(requestUri);
-
 		var request = WebRequest.CreateHttp(requestUri);
 
 		request.Method = method;
@@ -251,8 +251,8 @@ public class HttpClientService : ServiceBase
 		result.StatusCode = (int) response.StatusCode;
 		result.StatusDescription = response.StatusDescription;
 
-		var stream = response.GetResponseStream();
-		Infra.NotNull(stream);
+		var stream = response.GetResponseStream() ?? throw new InvalidOperationException();
+
 		await using (stream.ConfigureAwait(false))
 		{
 			var responseContentType = new ContentType(response.ContentType);
@@ -309,7 +309,8 @@ public class HttpClientService : ServiceBase
 			return;
 		}
 
-		Infra.NotNull(uri);
+		Debug.Assert(uri is not null);
+
 		var uriBuilder = new UriBuilder(uri);
 
 		foreach (var header in list)
