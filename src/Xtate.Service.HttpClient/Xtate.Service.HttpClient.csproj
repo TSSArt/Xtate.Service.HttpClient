@@ -10,7 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="Xtate.SharedContent" Version="0.*" />
-    <PackageReference Include="HtmlAgilityPack" Version="1.11.63" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.67" />
     <PackageReference Include="ConfigureAwaitChecker.Analyzer" Version="5.0.0.1" PrivateAssets="all" />
   </ItemGroup>
 
