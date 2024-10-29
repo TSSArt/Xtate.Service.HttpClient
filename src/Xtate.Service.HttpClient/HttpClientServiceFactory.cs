@@ -19,4 +19,4 @@ using Xtate.Core;
 
 namespace Xtate.Service;
 
-public class HttpClientServiceProvider() : ExternalServiceProvider<HttpClientService>(@"http://xtate.net/scxml/service/#HTTPClient", @"http");
+public class HttpClientServiceProvider() : ExternalServiceProvider<HttpClientService>(type: @"http://xtate.net/scxml/service/#HTTPClient", alias: @"http");

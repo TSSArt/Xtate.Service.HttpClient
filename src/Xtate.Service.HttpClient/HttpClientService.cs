@@ -31,18 +31,20 @@ using System.Threading;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
 using Xtate.Core;
-using Exception = System.Exception;
 
 namespace Xtate.Service;
 
 public class HttpClientService : ExternalServiceBase
 {
 	private const string MediaTypeApplicationFormUrlEncoded = "application/x-www-form-urlencoded";
-	private const string MediaTypeApplicationJson           = "application/json";
-	private const string MediaTypeTextHtml                  = "text/html";
+
+	private const string MediaTypeApplicationJson = "application/json";
+
+	private const string MediaTypeTextHtml = "text/html";
 
 	private static readonly FieldInfo DomainTableField = typeof(CookieContainer).GetField(name: "m_domainTable", BindingFlags.Instance | BindingFlags.NonPublic)!;
-	private static readonly FieldInfo ListField        = typeof(CookieContainer).Assembly.GetType("System.Net.PathList")!.GetField(name: "m_list", BindingFlags.Instance | BindingFlags.NonPublic)!;
+
+	private static readonly FieldInfo ListField = typeof(CookieContainer).Assembly.GetType("System.Net.PathList")!.GetField(name: "m_list", BindingFlags.Instance | BindingFlags.NonPublic)!;
 
 	protected override async ValueTask<DataModelValue> Execute()
 	{
@@ -87,6 +89,7 @@ public class HttpClientService : ExternalServiceBase
 		var response = await DoRequest(Source, method, accept, autoRedirect, contentType, headers, cookies, captures.ToArray(), Content, DestroyToken).ConfigureAwait(false);
 
 		var responseHeaders = new DataModelList();
+
 		foreach (var header in response.Headers)
 		{
 			responseHeaders.Add(
@@ -98,6 +101,7 @@ public class HttpClientService : ExternalServiceBase
 		}
 
 		var responseCookies = new DataModelList();
+
 		foreach (var cookie in response.Cookies)
 		{
 			Debug.Assert(cookie is not null);
@@ -178,6 +182,7 @@ public class HttpClientService : ExternalServiceBase
 		var htmlDocument = new HtmlDocument();
 
 		string html;
+
 		using (var streamReader = new StreamReader(stream.InjectCancellationToken(token), encoding))
 		{
 #if NET7_0_OR_GREATER
@@ -232,6 +237,7 @@ public class HttpClientService : ExternalServiceBase
 		var result = new Response();
 
 		HttpWebResponse response;
+
 		try
 		{
 			response = await GetResponse(request, token).ConfigureAwait(false);
@@ -282,6 +288,7 @@ public class HttpClientService : ExternalServiceBase
 	private static async Task<HttpWebResponse> GetResponse(HttpWebRequest request, CancellationToken token)
 	{
 		var registration = token.Register(request.Abort, useSynchronizationContext: false);
+
 		await using (registration.ConfigureAwait(false))
 		{
 			try
@@ -328,6 +335,7 @@ public class HttpClientService : ExternalServiceBase
 			const string pathPrefix = "path=";
 
 			var p1 = 0;
+
 			while ((p1 = header.IndexOf(pathPrefix, p1, StringComparison.Ordinal)) >= 0)
 			{
 				p1 += pathPrefix.Length;
@@ -354,6 +362,7 @@ public class HttpClientService : ExternalServiceBase
 		request.ContentType = contentType;
 
 		var stream = await request.GetRequestStreamAsync().ConfigureAwait(false);
+
 		await using (stream.ConfigureAwait(false))
 		{
 			switch (contentType)
@@ -362,18 +371,21 @@ public class HttpClientService : ExternalServiceBase
 				{
 					using var httpContent = CreateFormUrlEncodedContent(content);
 					await CopyContentToStreamAsync(httpContent, stream, token).ConfigureAwait(false);
+
 					break;
 				}
 				case MediaTypeApplicationJson:
 				{
 					using var httpContent = CreateJsonContent(content);
 					await CopyContentToStreamAsync(httpContent, stream, token).ConfigureAwait(false);
+
 					break;
 				}
 				default:
 				{
 					using var httpContent = CreateDefaultContent(content);
 					await CopyContentToStreamAsync(httpContent, stream, token).ConfigureAwait(false);
+
 					break;
 				}
 			}
@@ -527,6 +539,7 @@ public class HttpClientService : ExternalServiceBase
 		var groupNames = regex.GetGroupNames();
 
 		var list = new DataModelList();
+
 		foreach (var name in groupNames)
 		{
 			list.Add(name, match.Groups[name].Value);
@@ -537,19 +550,27 @@ public class HttpClientService : ExternalServiceBase
 
 	private struct Response
 	{
-		public int                                        StatusCode         { get; set; }
-		public string                                     StatusDescription  { get; set; }
-		public string                                     WebExceptionStatus { get; set; }
-		public DataModelValue                             Content            { get; set; }
-		public IEnumerable<KeyValuePair<string, string?>> Headers            { get; set; }
-		public IEnumerable<Cookie?>                       Cookies            { get; set; }
+		public int StatusCode { get; set; }
+
+		public string StatusDescription { get; set; }
+
+		public string WebExceptionStatus { get; set; }
+
+		public DataModelValue Content { get; set; }
+
+		public IEnumerable<KeyValuePair<string, string?>> Headers { get; set; }
+
+		public IEnumerable<Cookie?> Cookies { get; set; }
 	}
 
 	private struct Capture
 	{
-		public string    Name       { get; set; }
-		public string[]? XPaths     { get; set; }
+		public string Name { get; set; }
+
+		public string[]? XPaths { get; set; }
+
 		public string[]? Attributes { get; set; }
-		public string?   Regex      { get; set; }
+
+		public string? Regex { get; set; }
 	}
 }
