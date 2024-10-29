@@ -35,7 +35,7 @@ using Exception = System.Exception;
 
 namespace Xtate.Service;
 
-public class HttpClientService : ServiceBase
+public class HttpClientService : ExternalServiceBase
 {
 	private const string MediaTypeApplicationFormUrlEncoded = "application/x-www-form-urlencoded";
 	private const string MediaTypeApplicationJson           = "application/json";
@@ -84,7 +84,7 @@ public class HttpClientService : ServiceBase
 			return !string.IsNullOrEmpty(str) ? [str] : null;
 		}
 
-		var response = await DoRequest(Source, method, accept, autoRedirect, contentType, headers, cookies, captures.ToArray(), Content, StopToken).ConfigureAwait(false);
+		var response = await DoRequest(Source, method, accept, autoRedirect, contentType, headers, cookies, captures.ToArray(), Content, DestroyToken).ConfigureAwait(false);
 
 		var responseHeaders = new DataModelList();
 		foreach (var header in response.Headers)

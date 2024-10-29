@@ -26,7 +26,7 @@ public static class HttpClientExtensions
 	{
 		if (builder is null) throw new ArgumentNullException(nameof(builder));
 
-		builder.AddServiceFactory(HttpClientServiceFactory.Instance);
+		//builder.AddServiceFactory(HttpClientServiceFactory.Instance);
 
 		return builder;
 	}

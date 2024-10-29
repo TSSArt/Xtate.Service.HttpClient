@@ -15,19 +15,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using System;
+using Xtate.Core;
 
 namespace Xtate.Service;
 
-public class HttpClientServiceFactory : ServiceFactoryBase
-{
-	public static IServiceFactory Instance { get; } = new HttpClientServiceFactory();
-
-	protected override void Register(IServiceCatalog catalog)
-	{
-		if (catalog is null) throw new ArgumentNullException(nameof(catalog));
-
-		catalog.Register(type: @"http://xtate.net/scxml/service/#HTTPClient", () => new HttpClientService());
-		catalog.Register(type: @"http", () => new HttpClientService());
-	}
-}
+public class HttpClientServiceProvider() : ExternalServiceProvider<HttpClientService>(@"http://xtate.net/scxml/service/#HTTPClient", @"http");
