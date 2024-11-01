@@ -32,7 +32,7 @@ using System.Threading.Tasks;
 using HtmlAgilityPack;
 using Xtate.Core;
 
-namespace Xtate.Service;
+namespace Xtate.ExternalService;
 
 public class HttpClientService : ExternalServiceBase
 {
