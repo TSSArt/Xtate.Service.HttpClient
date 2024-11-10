@@ -17,4 +17,4 @@
 
 namespace Xtate.ExternalService;
 
-public class HttpClientServiceProvider() : ExternalServiceProvider<HttpClientService>(type: @"http://xtate.net/scxml/service/#HTTPClient", alias: @"http");
+public class HttpClientServiceProvider() : ExternalServiceProviderBase<HttpClientService>(type: @"http://xtate.net/scxml/service/#HTTPClient", alias: @"http");
