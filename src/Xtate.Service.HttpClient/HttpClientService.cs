@@ -34,8 +34,19 @@ using Xtate.Core;
 
 namespace Xtate.ExternalService;
 
-public class HttpClientService : ExternalServiceBase
+public class HttpClientService : ExternalServiceBase, IAsyncDisposable
 {
+	protected virtual ValueTask DisposeAsyncCore() => _disposingToken.DisposeAsync();
+
+	public async ValueTask DisposeAsync()
+	{
+		await DisposeAsyncCore().ConfigureAwait(false);
+
+		GC.SuppressFinalize(this);
+	}
+
+	private readonly DisposingToken _disposingToken = new();
+
 	private const string MediaTypeApplicationFormUrlEncoded = "application/x-www-form-urlencoded";
 
 	private const string MediaTypeApplicationJson = "application/json";
@@ -86,7 +97,7 @@ public class HttpClientService : ExternalServiceBase
 			return !string.IsNullOrEmpty(str) ? [str] : null;
 		}
 
-		var response = await DoRequest(Source, method, accept, autoRedirect, contentType, headers, cookies, captures.ToArray(), Content, DestroyToken).ConfigureAwait(false);
+		var response = await DoRequest(Source, method, accept, autoRedirect, contentType, headers, cookies, captures.ToArray(), Content, _disposingToken.Token).ConfigureAwait(false);
 
 		var responseHeaders = new DataModelList();
 
