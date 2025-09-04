@@ -1,4 +1,4 @@
-﻿// Copyright © 2019-2024 Sergii Artemenko
+﻿// Copyright © 2019-2025 Sergii Artemenko
 // 
 // This file is part of the Xtate project. <https://xtate.net/>
 // 
@@ -21,12 +21,12 @@ namespace Xtate;
 
 public static class HttpClientExtensions
 {
-	public static StateMachineHostBuilder AddHttpClient(this StateMachineHostBuilder builder)
-	{
-		if (builder is null) throw new ArgumentNullException(nameof(builder));
+    public static StateMachineHostBuilder AddHttpClient(this StateMachineHostBuilder builder)
+    {
+        if (builder is null) throw new ArgumentNullException(nameof(builder));
 
-		//builder.AddServiceFactory(HttpClientServiceFactory.Instance);
+        //builder.AddServiceFactory(HttpClientServiceFactory.Instance);
 
-		return builder;
-	}
+        return builder;
+    }
 }
