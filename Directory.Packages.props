@@ -1,0 +1,14 @@
+<Project>
+
+	<PropertyGroup>
+		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+		<CentralPackageFloatingVersionsEnabled>true</CentralPackageFloatingVersionsEnabled>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageVersion Include="Xtate.Core" Version="0.*" />
+
+		<PackageVersion Include="HtmlAgilityPack" Version="1.12.4" />
+	</ItemGroup>
+
+</Project>
